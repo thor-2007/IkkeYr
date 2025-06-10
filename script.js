@@ -21,6 +21,23 @@ async function weatherFn(cName) {
         if (response.ok) {
             weatherShowFn(data);            // Viser værdata på nettsiden
             showThreeDaysForecast(cName);   // Oppdaterer også 3-dagersvarsel
+
+
+
+
+            
+            // Fetch UV index from new API
+            let lat = data.coord.lat;
+            let lon = data.coord.lon;
+            let uvIndex = await getUVIndex(lat, lon);
+            showUVIndex(uvIndex); // You can reuse your existing showUVIndex function
+
+
+
+
+
+
+
         } else {
             alert('Fant ikke byen. Sjekk skrivemåten og prøv igjen.');
         }
@@ -30,12 +47,21 @@ async function weatherFn(cName) {
 }
 
 
+
+
+
+
+
 function weatherShowFn(data) {
     moment.locale('nb'); // Setter norsk datoformat
 
     // Viser informasjonen i de riktige HTML-elementene
     document.querySelector('#city-name').textContent = data.name;
-    document.querySelector('#date').textContent = moment().format('D. MMMM YYYY, HH:mm:ss');
+
+    // Vis landkode etter bynavnet (for eksempel: Oslo, NO)
+    document.querySelector('#country').textContent = data.sys.country;
+
+    document.querySelector('#date').textContent = moment().format('D. MMMM YYYY, HH:mm:ss') + " (GMT+2)";
     document.querySelector('#temperature').innerHTML = data.main.temp + '°C';
     document.querySelector('#description').textContent = data.weather[0].description;
     document.querySelector('#wind-speed').innerHTML = 'Vindhastighet: ' + data.wind.speed + ' m/s';
@@ -43,12 +69,16 @@ function weatherShowFn(data) {
     // Henter værikon fra OpenWeather
     document.querySelector('#weather-icon').src = 'https://openweathermap.org/img/wn/' + data.weather[0].icon + '@2x.png';
 
-    // Viser vær-informasjonen (uten fadeIn, da det er jQuery)
+    // Viser vær-informasjonen
     document.querySelector('#weather-info').style.display = "block";
 
     // Henter værvarsel for de neste timene
     weatherForecastFn(data.name);
 }
+
+
+
+
 
 
 
@@ -81,6 +111,14 @@ async function weatherForecastFn(city) {
                 document.querySelector('#forecast').innerHTML = 'Feil ved henting av værvarsel.';
             }
 }
+
+
+
+
+
+
+
+
 
 // Funksjon som henter det klokkeslettet brukeren har valgt
 function hentKlokkeslett() {
@@ -170,3 +208,61 @@ klokkeslettElement.onchange = function() {
     // Hent og vis vær for valgt by og klokkeslett
     showThreeDaysForecast(bynavn);
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Denne funksjonen henter UV-indeks for et sted (bruker breddegrad og lengdegrad)
+async function getUVIndex(latitude, longitude) {
+  // Lager adressen til UV-API-et med breddegrad og lengdegrad
+  let url = "https://currentuvindex.com/api/v1/uvi?latitude=" + latitude + "&longitude=" + longitude;
+
+  try {
+    // Henter data fra internett
+    let response = await fetch(url);
+    // Gjør om svaret til JSON (altså et objekt vi kan bruke i JavaScript)
+    let data = await response.json();
+
+    // Sjekker om vi fikk et OK svar fra API-et
+    if (data.ok) {
+      // Returnerer hele UV-objektet (ikke bare tallet)
+      // Eksempel: { uvi: 5.6, timestamp: '2025-06-10T10:00:00Z' }
+      return data.now;
+    } else {
+      // Hvis det var en feil, skriv ut feilmelding i konsollen
+      console.error("Feil med UV-data:", data.message);
+      return null;
+    }
+  } catch (error) {
+    // Hvis det skjer en feil med fetch, skriv ut feilmelding
+    console.error("Klarte ikke hente UV-data:", error);
+    return null;
+  }
+}
+
+// Denne funksjonen viser UV-indeks på nettsiden
+function showUVIndex(uvData) {
+  // Sjekker om vi har fått UV-data
+  if (!uvData) {
+    // Hvis ikke, skriv ut feilmelding til brukeren
+    document.getElementById("uv-index").textContent = "UV-indeks data ikke tilgjengelig";
+  } else {
+    // Hvis vi har UV-data, hent ut tallet
+    let uvValue = uvData.uvi;
+    // Skriv ut UV-indeks på nettsiden
+    document.getElementById("uv-index").innerHTML = "UV-indeks nå: <strong>" + uvValue + "</strong>";
+  }
+}

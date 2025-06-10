@@ -20,6 +20,15 @@ body {
 }
 
 
+.location{
+    margin-bottom: 1rem;
+    margin-top: 1rem;
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+
+
 select{
     font-size: 1rem;
     margin-left: 0.5rem;
@@ -27,7 +36,7 @@ select{
     width: 7rem;
     border: 1px solid #ccc;
     border-radius: 0.313rem;
-    margin-bottom: 2rem;
+    margin-bottom: 1rem;
 }
 
 
